@@ -1,0 +1,35 @@
+# Local infrastructure for development. The API and web app run on the host
+# with `pnpm dev`; only MongoDB and Redis run in containers.
+name: helpharbor
+
+services:
+  mongodb:
+    # Bundles mongod + mongot (Search / Vector Search) and starts a
+    # single-node replica set, which transactions and change streams need.
+    image: mongodb/mongodb-atlas-local:8.0
+    hostname: mongodb
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  mongodb-data:
+  mongodb-config:
+  redis-data:
