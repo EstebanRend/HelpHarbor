@@ -2,7 +2,7 @@
 
 **A multi-tenant support desk with an SLA engine and cited reply drafts.** HelpHarbor gives small software teams one shared queue where every ticket carries a deterministic SLA clock, agents can see when someone else is already replying, and suggested replies are built only from the team's own published knowledge-base articles.
 
-> **Status:** early development, following a 7-week roadmap (see below). No application code yet. The project uses only synthetic companies, customers and tickets; inbound email is a simulated, signed webhook.
+> **Status:** early development, following a 7-week roadmap (see below). Week 1 is in place: a pnpm + Turborepo workspace with a Next.js console placeholder, a NestJS API health endpoint, shared Zod contracts and a MongoDB + Redis Compose stack; tickets and the SLA engine come next. The project uses only synthetic companies, customers and tickets; inbound email is a simulated, signed webhook.
 
 ## The problem
 
@@ -100,7 +100,7 @@ helpharbor/
 
 | Week | Focus | Status |
 |---|---|---|
-| Week 1 | **Product definition & workspace bootstrap** — Add product charter, ADR 0001 and Next.js workspace shell, bootstrap NestJS API, Compose stack and shared contracts | Planned |
+| Week 1 | **Product definition & workspace bootstrap** — Add product charter, ADR 0001 and Next.js workspace shell, bootstrap NestJS API, Compose stack and shared contracts | ✅ Done |
 | Week 2 | **Tenancy, auth & ticket ingestion** — Add tenants, session login and tenant-scoped guards, add tickets, messages and signed idempotent inbound webhook, add ticket queue and conversation view with synthetic seed | Planned |
 | Week 3 | **Replies, audit & SLA engine** — Add replies, notes, status machine and audited assignment, add macros and cover reply conflicts and invalid transitions, add pure business-hours SLA engine with golden fixtures, add SLA badges, calendar editor and breach-check job | Planned |
 | Week 4 | **Realtime presence & collision detection** — Add authenticated Socket.IO gateway with Redis presence, add outbox relay, live queue and replying banner | Planned |
@@ -110,4 +110,16 @@ helpharbor/
 
 ## Getting started
 
-Setup instructions will be added once the first services are in place.
+Requirements: Node.js 22+, pnpm (via `corepack enable`) and Docker with Compose.
+
+```bash
+git clone <this repository> helpharbor && cd helpharbor
+./scripts/dev.sh
+```
+
+This creates `.env` from `.env.example`, installs dependencies, starts MongoDB (single-node replica set) and Redis, checks that a MongoDB transaction works, and starts both apps:
+
+- agent console: http://localhost:3000
+- API health: http://localhost:4000/api/v1/health
+
+Run the same checks as CI with `./scripts/dev.sh check` (lint, typecheck, unit tests, build). Environment variables, the planned seed data and troubleshooting are described in [docs/setup.md](docs/setup.md).
