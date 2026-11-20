@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { fetchApiStatus } from "@/lib/api-status";
+
+// The API status is checked on every request, never at build time.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Agent console",
@@ -6,13 +10,18 @@ export const metadata: Metadata = {
 
 const queueViews = ["Unassigned", "Mine", "Breach risk", "Pending customer", "All open"] as const;
 
-export default function ConsolePage() {
+export default async function ConsolePage() {
+  const api = await fetchApiStatus(process.env.API_BASE_URL ?? "http://localhost:4000");
+
   return (
     <div className="console">
       <header className="console__header">
         <span className="brand">HelpHarbor</span>
         <span className="workspace" aria-label="Current workspace">
           No workspace selected
+        </span>
+        <span className={`api-status api-status--${api.state}`} role="status">
+          {api.state === "up" ? `API ${api.health.version} online` : api.reason}
         </span>
       </header>
 

@@ -55,6 +55,21 @@ body {
   color: var(--muted);
 }
 
+.api-status {
+  font-size: 0.875rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.api-status--up {
+  color: #1d6b3a;
+}
+
+.api-status--down {
+  color: #a3261d;
+}
+
 .console__panes {
   flex: 1;
   display: grid;

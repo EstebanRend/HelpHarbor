@@ -22,9 +22,9 @@ Status: `todo` · `doing` · `done`. Updated at the end of each week together wi
 - [x] Product charter, personas, SLA glossary
 - [x] ADR 0001: Next.js + NestJS split
 - [x] pnpm + Turborepo workspace and Next.js App Router shell with agent console placeholder
-- [ ] NestJS API with versioned health endpoint and config validation
-- [ ] MongoDB single-node replica set and Redis in Compose
-- [ ] Shared `contracts` package with Zod schemas
+- [x] NestJS API with versioned health endpoint and config validation
+- [x] MongoDB single-node replica set and Redis in Compose
+- [x] Shared `contracts` package with Zod schemas
 - [ ] Local startup documentation
 - [ ] CI: lint, typecheck, test and build
 

@@ -1,0 +1,26 @@
+import "reflect-metadata";
+import { resolve } from "node:path";
+import { Logger } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { APP_CONFIG, type AppConfig } from "./config/env";
+import { configureApp } from "./configure-app";
+
+function loadLocalEnvFile(): void {
+  try {
+    process.loadEnvFile(resolve(__dirname, "../../../.env"));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+}
+
+async function bootstrap(): Promise<void> {
+  loadLocalEnvFile();
+  const app = await NestFactory.create(AppModule);
+  const config = app.get<AppConfig>(APP_CONFIG);
+  configureApp(app, config);
+  await app.listen(config.API_PORT);
+  new Logger("Bootstrap").log(`API listening on http://localhost:${config.API_PORT}/api/v1/health`);
+}
+
+void bootstrap();
