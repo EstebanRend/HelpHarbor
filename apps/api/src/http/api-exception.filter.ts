@@ -1,5 +1,5 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, HttpStatus, Logger } from "@nestjs/common";
-import type { ErrorEnvelope } from "@helpharbor/contracts";
+import { type ErrorEnvelope, redactEmails } from "@helpharbor/contracts";
 import type { Request, Response } from "express";
 import { ApiError } from "./api-error";
 
@@ -40,9 +40,10 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
 
     if (status >= 500) {
+      // Driver errors can quote the offending document (e.g. a duplicate email); never log addresses in full.
       this.logger.error(
         `${request.method} ${request.path} failed [${requestId}]`,
-        exception instanceof Error ? exception.stack : String(exception),
+        redactEmails(exception instanceof Error ? (exception.stack ?? exception.message) : String(exception)),
       );
     }
 

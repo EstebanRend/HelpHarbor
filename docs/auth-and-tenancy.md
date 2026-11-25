@@ -59,6 +59,14 @@ The permission matrix lives in `packages/contracts/src/permissions.ts` and match
 - `returnTo` is limited to same-site paths, so a crafted link cannot redirect off-site after sign-in.
 - Client actions (switch workspace, sign out) send the CSRF token from the session response; a `401` sends the user back to sign-in.
 
+## Tests
+
+- `apps/api/test/auth.e2e.spec.ts`: sign-in, cookies, CSRF, expiry, workspace switching.
+- `apps/api/test/tenant-isolation.e2e.spec.ts`: every seeded membership against every permission, and cross-tenant reads, lists, updates and deletes through `TenantScopedCollection`. Test-only probe routes (`apps/api/test/support`) stand in for the ticket endpoints until they exist.
+- `apps/e2e`: Playwright sign-in and forbidden-access flows in a real browser (see [Local setup](setup.md#end-to-end-tests)).
+
+What these defend against, and what is still open, is in the [identity threat model](security/identity-threat-model.md).
+
 ## Not done yet
 
 - Login rate limiting and account lockout (week 11).

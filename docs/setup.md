@@ -86,14 +86,28 @@ pnpm seed
 
 Tickets are not seeded yet; they arrive with inbound ingestion in week 3.
 
+## End-to-end tests
+
+Playwright tests in `apps/e2e` drive the built web app and API in Chromium: sign-in, returnTo handling, workspace switching, sign-out, and the forbidden cases (agent on admin pages, foreign workspace, missing CSRF token, foreign origin, anonymous API calls).
+
+```bash
+./scripts/dev.sh infra                                   # MongoDB + Redis
+pnpm build && pnpm seed                                  # SEED_DEMO_PASSWORD set in .env
+pnpm --filter @helpharbor/e2e exec playwright install chromium   # once
+SEED_DEMO_PASSWORD=<same as .env> pnpm e2e
+```
+
+Playwright starts the API (`apps/api/dist`) on port 4000 and `next start` on port 3000, or reuses servers already running there. To use other ports, set `E2E_API_PORT`/`E2E_WEB_PORT` and build the web app with the matching `API_BASE_URL`, because the `/api/*` rewrite is fixed at build time. A failed run leaves traces in `apps/e2e/test-results`.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every push to `main` and on pull requests:
 
 - **checks**: `pnpm install --frozen-lockfile`, then lint, typecheck, tests and build, with the pnpm store cached between runs. The API tests start a throwaway `mongod` through `mongodb-memory-server` (downloaded once and cached), so auth and tenancy run against a real MongoDB without Docker
+- **e2e**: starts MongoDB with `./scripts/dev.sh infra`, builds, seeds with a throwaway password and runs the Playwright suite; the report and traces are uploaded when it fails
 - **infrastructure**: starts the Compose stack on a clean runner with `./scripts/dev.sh infra` and verifies a MongoDB transaction
 
-Both jobs start from a fresh checkout, so a green run also confirms that a clean clone builds.
+All jobs start from a fresh checkout, so a green run also confirms that a clean clone builds.
 
 ## Troubleshooting
 

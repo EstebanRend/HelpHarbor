@@ -44,4 +44,4 @@ All names and companies are synthetic. The demo tenant is **Acme Cloud**, a smal
 | Read reports | ✓ | ✓ | — | — |
 | Manage members and roles | ✓ | — | — | — |
 
-The matrix is enforced by the API, not the UI; integration tests in week 2 cover every row.
+The matrix is enforced by the API, not the UI. `apps/api/test/tenant-isolation.e2e.spec.ts` checks every staff row for every seeded membership, and fails if this table and `ROLE_PERMISSIONS` disagree.

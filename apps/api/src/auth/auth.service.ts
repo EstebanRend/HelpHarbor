@@ -1,5 +1,11 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
-import type { LoginRequest, MembershipSummary, SessionResponse, TenantSummary } from "@helpharbor/contracts";
+import { HttpStatus, Injectable, Logger } from "@nestjs/common";
+import {
+  type LoginRequest,
+  type MembershipSummary,
+  type SessionResponse,
+  type TenantSummary,
+  maskEmail,
+} from "@helpharbor/contracts";
 import type { ObjectId } from "mongodb";
 import type { SessionDoc, TenantDoc, UserDoc } from "../database/documents";
 import { ApiError } from "../http/api-error";
@@ -23,6 +29,8 @@ const workspaceNotFound = () => ApiError.notFound("Workspace");
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger("Auth");
+
   constructor(
     private readonly tenancy: TenancyRepository,
     private readonly sessions: SessionsRepository,
@@ -37,7 +45,11 @@ export class AuthService {
   async login(body: LoginRequest): Promise<{ token: string; response: SessionResponse }> {
     const user = await this.tenancy.findUserByEmail(body.email);
     const passwordOk = await this.passwords.verify(user?.passwordHash, body.password);
-    if (!user || !passwordOk || user.disabledAt) throw invalidCredentials();
+    if (!user || !passwordOk || user.disabledAt) {
+      // Enough to spot password guessing against one account without logging who it is.
+      this.logger.warn(`sign-in rejected for ${maskEmail(body.email)}`);
+      throw invalidCredentials();
+    }
 
     const memberships = await this.tenancy.listMembershipsForUser(user._id);
     let active = memberships[0] ?? null;

@@ -35,9 +35,9 @@ Status: `todo` · `doing` · `done`. Updated at the end of each week together wi
 - [x] CSRF: origin check plus a per-session synchronizer token on every state-changing request
 - [x] `SessionGuard`, `CsrfGuard`, `TenantGuard`, `RolesGuard`; repositories reject filters without a concrete `tenantId`
 - [x] Next.js sign-in, workspace switcher, role-aware navigation and expired-session redirect
-- [ ] Cross-tenant and role-matrix tests for every row of the persona matrix
-- [ ] Identity threat model and demo-account notes
-- [ ] Playwright login and forbidden-access E2E in CI
+- [x] Cross-tenant and role-matrix tests for every row of the persona matrix
+- [x] Identity threat model and demo-account notes; masked emails in logs
+- [x] Playwright login and forbidden-access E2E in CI
 
 ## Risks
 
