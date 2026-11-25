@@ -29,7 +29,7 @@ describe("readHealth", () => {
 
 describe("fetchApiStatus", () => {
   it("calls the versioned health route", async () => {
-    const fetchImpl = vi.fn(async () => jsonResponse(health));
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => jsonResponse(health));
     const status = await fetchApiStatus("http://api.test:4000", fetchImpl);
     expect(status.state).toBe("up");
     expect(String(fetchImpl.mock.calls[0]?.[0])).toBe("http://api.test:4000/api/v1/health");

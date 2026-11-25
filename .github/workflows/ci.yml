@@ -31,8 +31,7 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      # Cache the pnpm store. Keyed on the manifests as well as the lockfile so
-      # the cache also works before a lockfile is committed.
+      # Cache the pnpm store between runs.
       - name: Locate pnpm store
         id: pnpm-store
         run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
@@ -40,16 +39,18 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '**/package.json') }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
       - name: Install dependencies
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile
-          else
-            pnpm install --no-frozen-lockfile
-          fi
+        run: pnpm install --frozen-lockfile
+
+      # mongod binary used by the API tests (mongodb-memory-server)
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: mongodb-binaries-${{ runner.os }}-
 
       - name: Lint
         run: pnpm lint
@@ -57,7 +58,7 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Unit tests
+      - name: Tests
         run: pnpm test
 
       - name: Build

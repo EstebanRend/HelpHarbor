@@ -1,7 +1,9 @@
 import { Controller, Get, Inject } from "@nestjs/common";
 import { HealthResponseSchema, type HealthResponse } from "@helpharbor/contracts";
+import { Public } from "../auth/decorators";
 import { APP_CONFIG, type AppConfig } from "../config/env";
 
+@Public()
 @Controller({ path: "health", version: "1" })
 export class HealthController {
   constructor(@Inject(APP_CONFIG) private readonly config: AppConfig) {}

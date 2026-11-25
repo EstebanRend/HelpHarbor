@@ -5,6 +5,8 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { APP_CONFIG, type AppConfig } from "./config/env";
 import { configureApp } from "./configure-app";
+import { MONGO_DB } from "./database/database.module";
+import { ensureCollections } from "./database/schema";
 
 function loadLocalEnvFile(): void {
   try {
@@ -19,6 +21,8 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const config = app.get<AppConfig>(APP_CONFIG);
   configureApp(app, config);
+  // Idempotent: creates collections, validators and indexes before serving traffic.
+  await ensureCollections(app.get(MONGO_DB));
   await app.listen(config.API_PORT);
   new Logger("Bootstrap").log(`API listening on http://localhost:${config.API_PORT}/api/v1/health`);
 }

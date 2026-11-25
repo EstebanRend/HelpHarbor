@@ -5,7 +5,7 @@ Status: `todo` · `doing` · `done`. Updated at the end of each week together wi
 | Week | Theme | Outcome | Status |
 |---|---|---|---|
 | 01 | Product definition & workspace bootstrap | Monorepo runs Next.js, NestJS, a MongoDB replica set and Redis locally; CI green | done |
-| 02 | Tenancy, authentication & roles | Two synthetic tenants with server-enforced isolation and role tests | todo |
+| 02 | Tenancy, authentication & roles | Two synthetic tenants with server-enforced isolation and role tests | doing |
 | 03 | Tickets, messages & inbound ingestion | Signed, idempotent webhook creates threaded tickets exactly once | todo |
 | 04 | Replies, audit trail & SLA engine start | Replies and notes with `If-Match`; status machine; pure SLA engine with golden fixtures | todo |
 | 05 | SLA policies, macros & breach checks | Calendar editor, policy snapshots, breach events emitted exactly once | todo |
@@ -28,8 +28,18 @@ Status: `todo` · `doing` · `done`. Updated at the end of each week together wi
 - [x] Local startup documentation (`scripts/dev.sh`, `docs/setup.md`)
 - [x] CI: lint, typecheck, test and build, plus a Compose transaction check
 
+## Week 02 checklist
+
+- [x] Tenants, users and memberships with JSON Schema validators and unique indexes; two seeded tenants
+- [x] Session login: httpOnly `SameSite=Lax` cookie, argon2id, hashed session tokens, idle and absolute expiry
+- [x] CSRF: origin check plus a per-session synchronizer token on every state-changing request
+- [x] `SessionGuard`, `CsrfGuard`, `TenantGuard`, `RolesGuard`; repositories reject filters without a concrete `tenantId`
+- [x] Next.js sign-in, workspace switcher, role-aware navigation and expired-session redirect
+- [ ] Cross-tenant and role-matrix tests for every row of the persona matrix
+- [ ] Identity threat model and demo-account notes
+- [ ] Playwright login and forbidden-access E2E in CI
+
 ## Risks
 
-- No lockfile is committed yet; the first install generates `pnpm-lock.yaml`, which should be committed so CI switches to `--frozen-lockfile`.
 - The toolchain (Node, pnpm, Docker) must be available to verify the workspace end to end.
 - MongoDB Search and Vector Search on a laptop depend on the `mongodb/mongodb-atlas-local` image; confirm its current status when the Compose stack is added.

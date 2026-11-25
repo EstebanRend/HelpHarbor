@@ -122,4 +122,6 @@ This creates `.env` from `.env.example`, installs dependencies, starts MongoDB (
 - agent console: http://localhost:3000
 - API health: http://localhost:4000/api/v1/health
 
-Run the same checks as CI with `./scripts/dev.sh check` (lint, typecheck, unit tests, build). Environment variables, the planned seed data and troubleshooting are described in [docs/setup.md](docs/setup.md).
+To sign in, set `SEED_DEMO_PASSWORD` in `.env` (12+ characters) and run `pnpm seed`. It creates two fictional workspaces, Acme Cloud and Globex Hosting, each with an admin, a lead and two agents; for example `marta.admin@acme-cloud.example` (admin) or `ana.agent@acme-cloud.example` (agent in both workspaces).
+
+Run the same checks as CI with `./scripts/dev.sh check` (lint, typecheck, tests, build). Environment variables, seed data and troubleshooting are described in [docs/setup.md](docs/setup.md); sessions, CSRF, guards and tenant scoping in [docs/auth-and-tenancy.md](docs/auth-and-tenancy.md).

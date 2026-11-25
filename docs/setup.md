@@ -25,8 +25,10 @@ The script:
 
 Then open:
 
-- agent console: <http://localhost:3000> (redirects to `/console`; the header shows whether the API is reachable)
+- agent console: <http://localhost:3000> (redirects to `/console`, or to `/login` when you are not signed in)
 - API health: <http://localhost:4000/api/v1/health>
+
+Before the first sign-in, set `SEED_DEMO_PASSWORD` in `.env` and run `pnpm seed` (see [Seed data](#seed-data)).
 
 Other modes:
 
@@ -48,7 +50,11 @@ All variables live in one `.env` file at the repository root. Never commit it; `
 | `WEB_ORIGIN` | API | `http://localhost:3000` | Only origin allowed by CORS |
 | `MONGODB_URI` | API, `verify:mongo` | `mongodb://localhost:27017/helpharbor?directConnection=true` | `directConnection=true` is needed for the single-node replica set |
 | `REDIS_URL` | API | `redis://localhost:6379` | Queues, presence and rate limits (later weeks) |
-| `API_BASE_URL` | web (server side) | `http://localhost:4000` | Where the Next.js server reaches the API; the browser never talks to MongoDB |
+| `SESSION_IDLE_MINUTES` | API | `480` | A session ends after this long without a request |
+| `SESSION_ABSOLUTE_HOURS` | API | `168` | A session ends this long after sign-in, however active |
+| `COOKIE_SECURE` | API | `false` | `Secure` flag on the session cookie; defaults to `true` when `NODE_ENV=production` |
+| `SEED_DEMO_PASSWORD` | `pnpm seed` | empty | Password for every demo account, at least 12 characters; the seed refuses to run without one |
+| `API_BASE_URL` | web (server side and build) | `http://localhost:4000` | Where the Next.js server reaches the API, and where `/api/*` is proxied. Rewrites are fixed at build time, so set it before `pnpm build` |
 | `APP_VERSION` | API | not set (`0.0.0`) | Reported by the health endpoint |
 
 The API validates its variables at startup and lists every invalid one before exiting, for example:
@@ -61,18 +67,30 @@ Invalid API configuration:
 
 ## Seed data
 
-There is no seed yet. The plan, starting with tenancy in week 2:
+```bash
+# in .env: SEED_DEMO_PASSWORD=<your own, 12+ characters>
+pnpm seed
+```
 
-- `pnpm seed` will create two synthetic tenants ("Acme Cloud" and a second company) with one admin, one team lead and two agents each, so tenant isolation can be demonstrated from the first login.
-- All companies, people, email addresses and tickets are generated and clearly fictional; no real customer data is ever loaded.
-- The seed will be idempotent (upserts keyed by tenant slug and email), so it can be re-run safely on an existing database.
-- Demo passwords will come from `.env`, never from the repository.
+`pnpm seed` builds the API, creates collections, validators and indexes, and upserts two synthetic workspaces:
+
+| Workspace | Time zone | Admin | Lead | Agents |
+|---|---|---|---|---|
+| Acme Cloud (`acme-cloud`) | Europe/Madrid | `marta.admin@acme-cloud.example` | `luis.lead@acme-cloud.example` | `ana.agent@acme-cloud.example`, `pedro.agent@acme-cloud.example` |
+| Globex Hosting (`globex-hosting`) | America/Bogota | `grace.admin@globex-hosting.example` | `hugo.lead@globex-hosting.example` | `tomas.agent@globex-hosting.example`, `ana.agent@acme-cloud.example` |
+
+- Ana is an agent in both workspaces, so the workspace switcher has something to switch.
+- All companies, people and addresses are fictional and use the reserved `.example` domain; no real data is ever loaded.
+- Ids are fixed, so re-running the seed changes nothing. A password is only re-hashed when `SEED_DEMO_PASSWORD` changes.
+- The seed refuses an empty, short or placeholder password; the password lives only in your `.env`.
+
+Tickets are not seeded yet; they arrive with inbound ingestion in week 3.
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every push to `main` and on pull requests:
 
-- **checks**: `pnpm install`, then lint, typecheck, unit tests and build, with the pnpm store cached between runs
+- **checks**: `pnpm install --frozen-lockfile`, then lint, typecheck, tests and build, with the pnpm store cached between runs. The API tests start a throwaway `mongod` through `mongodb-memory-server` (downloaded once and cached), so auth and tenancy run against a real MongoDB without Docker
 - **infrastructure**: starts the Compose stack on a clean runner with `./scripts/dev.sh infra` and verifies a MongoDB transaction
 
 Both jobs start from a fresh checkout, so a green run also confirms that a clean clone builds.
@@ -82,3 +100,5 @@ Both jobs start from a fresh checkout, so a green run also confirms that a clean
 - **`MongoDB is not running as a replica set`**: the URI is pointing at another MongoDB. Stop it, or change the port mapping in `compose.yaml` and `MONGODB_URI`.
 - **API exits with `Invalid API configuration`**: compare `.env` with `.env.example`.
 - **Console header says "API is unreachable"**: the API is not running on `API_BASE_URL`; check the `pnpm dev` output.
+- **Sign-in says "Sign-in failed"** with `origin_not_allowed` in the API response: open the web app on the exact `WEB_ORIGIN` (for example `localhost`, not `127.0.0.1`).
+- **`seed failed: SEED_DEMO_PASSWORD must be set`**: choose a password of 12 or more characters in `.env`.

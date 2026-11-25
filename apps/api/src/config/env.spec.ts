@@ -13,6 +13,9 @@ describe("loadConfig", () => {
       API_PORT: 4000,
       WEB_ORIGIN: "http://localhost:3000",
       APP_VERSION: "0.0.0",
+      SESSION_IDLE_MINUTES: 480,
+      SESSION_ABSOLUTE_HOURS: 168,
+      COOKIE_SECURE: false,
     });
   });
 
@@ -40,5 +43,16 @@ describe("loadConfig", () => {
   it("accepts a mongodb+srv URI for managed clusters", () => {
     const uri = "mongodb+srv://cluster0.example.net/helpharbor";
     expect(loadConfig({ ...valid, MONGODB_URI: uri }).MONGODB_URI).toBe(uri);
+  });
+
+  it("marks the session cookie Secure in production unless overridden", () => {
+    expect(loadConfig({ ...valid, NODE_ENV: "production" }).COOKIE_SECURE).toBe(true);
+    expect(loadConfig({ ...valid, NODE_ENV: "production", COOKIE_SECURE: "false" }).COOKIE_SECURE).toBe(false);
+    expect(loadConfig({ ...valid, COOKIE_SECURE: "true" }).COOKIE_SECURE).toBe(true);
+  });
+
+  it("rejects ambiguous cookie flags and too-short session lifetimes", () => {
+    expect(() => loadConfig({ ...valid, COOKIE_SECURE: "yes" })).toThrow(ConfigValidationError);
+    expect(() => loadConfig({ ...valid, SESSION_IDLE_MINUTES: "1" })).toThrow(ConfigValidationError);
   });
 });

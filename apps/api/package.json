@@ -8,13 +8,16 @@
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "verify:mongo": "node --env-file-if-exists=../../.env scripts/verify-mongo-transaction.mjs"
+    "verify:mongo": "node --env-file-if-exists=../../.env scripts/verify-mongo-transaction.mjs",
+    "seed": "nest build && node dist/seed/seed.js"
   },
   "dependencies": {
     "@helpharbor/contracts": "workspace:*",
     "@nestjs/common": "^11.1.8",
     "@nestjs/core": "^11.1.8",
     "@nestjs/platform-express": "^11.1.8",
+    "@node-rs/argon2": "^2.0.2",
+    "mongodb": "^6.20.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "^4.1.12"
@@ -27,18 +30,36 @@
     "@types/node": "^22.18.0",
     "@types/supertest": "^6.0.3",
     "jest": "^30.2.0",
-    "mongodb": "^6.20.0",
+    "mongodb-memory-server": "^10.3.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3"
   },
   "jest": {
     "testEnvironment": "node",
-    "roots": ["<rootDir>/src", "<rootDir>/test"],
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/test"
+    ],
     "testRegex": ".*\\.spec\\.ts$",
-    "moduleFileExtensions": ["ts", "js", "json"],
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
     "transform": {
-      "^.+\\.ts$": ["ts-jest", { "tsconfig": "<rootDir>/tsconfig.json" }]
-    }
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "<rootDir>/tsconfig.json",
+          "diagnostics": {
+            "ignoreCodes": [
+              151002
+            ]
+          }
+        }
+      ]
+    },
+    "testTimeout": 60000
   }
 }
