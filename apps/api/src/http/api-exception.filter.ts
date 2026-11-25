@@ -15,6 +15,13 @@ const CODES_BY_STATUS: Record<number, string> = {
   429: "too_many_requests",
 };
 
+/** `http-errors` marks errors that are safe to show the client with `expose: true`. */
+function isClientHttpError(error: unknown): error is Error & { status: number } {
+  if (!(error instanceof Error)) return false;
+  const { status, expose } = error as Error & { status?: unknown; expose?: unknown };
+  return typeof status === "number" && status >= 400 && status < 500 && expose === true;
+}
+
 /** Renders every error as `{ error: { code, message, requestId, details? } }`. */
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
@@ -35,8 +42,12 @@ export class ApiExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const code = CODES_BY_STATUS[status] ?? (status >= 500 ? "internal_error" : "request_failed");
-      // Body-parser errors (malformed JSON, too large) arrive here as HttpExceptions too.
       body = { code, message: status >= 500 ? "Something went wrong" : exception.message, requestId };
+    } else if (isClientHttpError(exception)) {
+      // Body-parser errors (malformed JSON, body too large, bad charset) are plain
+      // `http-errors` objects, not HttpExceptions; they are the client's fault.
+      status = exception.status;
+      body = { code: CODES_BY_STATUS[status] ?? "request_failed", message: exception.message, requestId };
     }
 
     if (status >= 500) {

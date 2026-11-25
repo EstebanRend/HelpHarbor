@@ -15,6 +15,24 @@ const EnvSchema = z.object({
   SESSION_ABSOLUTE_HOURS: z.coerce.number().int().min(1).max(720).default(168),
   /** Adds the `Secure` flag to the session cookie. Defaults to true in production. */
   COOKIE_SECURE: z.enum(["true", "false"]).optional(),
+  /**
+   * Shared secret of the simulated mail provider; signs `POST /api/v1/inbound/email`.
+   * Unset (or empty) disables the webhook with 503 `inbound_disabled`.
+   */
+  INBOUND_WEBHOOK_SECRET: z
+    .string()
+    .min(32, "must be at least 32 characters (try: openssl rand -hex 32)")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  /** Inbound mail goes to `<workspace slug>@<domain>`; replies to `<slug>+<reply token>@<domain>`. */
+  INBOUND_EMAIL_DOMAIN: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/, "must be a domain name")
+    .default("inbound.helpharbor.example"),
+  /** Signed requests older or newer than this are refused, which limits replays. */
+  INBOUND_SIGNATURE_TOLERANCE_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
 });
 
 type ParsedEnv = z.infer<typeof EnvSchema>;

@@ -25,6 +25,12 @@ export default tseslint.config(
     },
   },
   {
+    // CommonJS helper files (e.g. Jest transforms) load their dependencies with require().
+    files: ["**/*.cjs"],
+    languageOptions: { sourceType: "commonjs" },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
+  {
     // NestJS resolves providers from decorator metadata, so constructor
     // parameter types must stay value imports.
     files: ["apps/api/**/*.ts"],

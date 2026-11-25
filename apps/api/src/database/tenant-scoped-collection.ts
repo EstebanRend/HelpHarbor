@@ -6,7 +6,9 @@ import {
   type DeleteResult,
   type Document,
   type Filter,
+  type FindOneAndUpdateOptions,
   type FindOptions,
+  type InsertOneOptions,
   type InsertOneResult,
   type OptionalUnlessRequiredId,
   type UpdateFilter,
@@ -55,11 +57,25 @@ export class TenantScopedCollection<T extends TenantOwned & Document> {
     return this.collection.countDocuments(filter, options);
   }
 
-  insertOne(doc: OptionalUnlessRequiredId<T>): Promise<InsertOneResult<T>> {
+  insertOne(doc: OptionalUnlessRequiredId<T>, options?: InsertOneOptions): Promise<InsertOneResult<T>> {
     if (!(doc.tenantId instanceof ObjectId)) {
       throw new MissingTenantScopeError(this.collectionName, "insertOne");
     }
-    return this.collection.insertOne(doc);
+    return options ? this.collection.insertOne(doc, options) : this.collection.insertOne(doc);
+  }
+
+  /**
+   * Returns the updated (or, with `upsert`, inserted) document. An upsert copies
+   * the filter's `tenantId` into the new document, so it stays in the tenant.
+   */
+  findOneAndUpdate(
+    filter: Filter<T>,
+    update: UpdateFilter<T>,
+    options: FindOneAndUpdateOptions & { returnDocument: "before" | "after" },
+  ): Promise<WithId<T> | null> {
+    this.assertScoped(filter, "findOneAndUpdate");
+    this.assertTenantUnchanged(update);
+    return this.collection.findOneAndUpdate(filter, update, { ...options, includeResultMetadata: false });
   }
 
   updateOne(filter: Filter<T>, update: UpdateFilter<T>, options?: UpdateOptions): Promise<UpdateResult<T>> {

@@ -55,4 +55,20 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ ...valid, COOKIE_SECURE: "yes" })).toThrow(ConfigValidationError);
     expect(() => loadConfig({ ...valid, SESSION_IDLE_MINUTES: "1" })).toThrow(ConfigValidationError);
   });
+
+  it("leaves the inbound webhook disabled unless a long enough secret is set", () => {
+    expect(loadConfig(valid).INBOUND_WEBHOOK_SECRET).toBeUndefined();
+    expect(loadConfig({ ...valid, INBOUND_WEBHOOK_SECRET: "" }).INBOUND_WEBHOOK_SECRET).toBeUndefined();
+    expect(() => loadConfig({ ...valid, INBOUND_WEBHOOK_SECRET: "short" })).toThrow(/at least 32 characters/);
+    const secret = "a".repeat(32);
+    expect(loadConfig({ ...valid, INBOUND_WEBHOOK_SECRET: secret }).INBOUND_WEBHOOK_SECRET).toBe(secret);
+  });
+
+  it("normalizes the inbound domain and bounds the signature tolerance", () => {
+    const config = loadConfig({ ...valid, INBOUND_EMAIL_DOMAIN: " Mail.Example.TEST " });
+    expect(config.INBOUND_EMAIL_DOMAIN).toBe("mail.example.test");
+    expect(config.INBOUND_SIGNATURE_TOLERANCE_SECONDS).toBe(300);
+    expect(() => loadConfig({ ...valid, INBOUND_EMAIL_DOMAIN: "localhost" })).toThrow(ConfigValidationError);
+    expect(() => loadConfig({ ...valid, INBOUND_SIGNATURE_TOLERANCE_SECONDS: "5" })).toThrow(ConfigValidationError);
+  });
 });

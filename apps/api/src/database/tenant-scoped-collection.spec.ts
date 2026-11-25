@@ -20,6 +20,7 @@ function fakeCollection() {
     countDocuments: record("countDocuments"),
     insertOne: record("insertOne"),
     updateOne: record("updateOne"),
+    findOneAndUpdate: record("findOneAndUpdate"),
     deleteOne: record("deleteOne"),
     aggregate: record("aggregate"),
   } as unknown as Collection<Note>;
@@ -38,7 +39,10 @@ describe("TenantScopedCollection", () => {
     await scoped.updateOne({ tenantId, _id: new ObjectId() }, { $set: { body: "y" } });
     await scoped.deleteOne({ tenantId });
     scoped.aggregate([{ $match: { tenantId } }, { $limit: 1 }]);
-    expect(calls).toEqual(["find", "findOne", "countDocuments", "insertOne", "updateOne", "deleteOne", "aggregate"]);
+    await scoped.findOneAndUpdate({ tenantId, body: "x" }, { $set: { body: "y" } }, { returnDocument: "after" });
+    expect(calls).toEqual([
+      "find", "findOne", "countDocuments", "insertOne", "updateOne", "deleteOne", "aggregate", "findOneAndUpdate",
+    ]);
   });
 
   it("rejects filters without tenantId before reaching the driver", () => {
@@ -48,6 +52,9 @@ describe("TenantScopedCollection", () => {
     expect(() => scoped.countDocuments({ _id: new ObjectId() })).toThrow(MissingTenantScopeError);
     expect(() => scoped.deleteOne({ body: "x" })).toThrow(MissingTenantScopeError);
     expect(() => scoped.updateOne({ body: "x" }, { $set: { body: "y" } })).toThrow(MissingTenantScopeError);
+    expect(() => scoped.findOneAndUpdate({ body: "x" }, { $set: { body: "y" } }, { returnDocument: "after" })).toThrow(
+      MissingTenantScopeError,
+    );
     expect(calls).toEqual([]);
   });
 
@@ -68,6 +75,9 @@ describe("TenantScopedCollection", () => {
     const { scoped } = fakeCollection();
     expect(() => scoped.updateOne({ tenantId }, { $set: { tenantId: new ObjectId() } })).toThrow(/may not change tenantId/);
     expect(() => scoped.updateOne({ tenantId }, { $unset: { tenantId: "" } })).toThrow(/may not change tenantId/);
+    expect(() =>
+      scoped.findOneAndUpdate({ tenantId }, { $setOnInsert: { tenantId: new ObjectId() } }, { returnDocument: "after" }),
+    ).toThrow(/may not change tenantId/);
   });
 
   it("requires aggregations to start with a tenant $match", () => {

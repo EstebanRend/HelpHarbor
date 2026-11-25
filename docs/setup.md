@@ -53,6 +53,9 @@ All variables live in one `.env` file at the repository root. Never commit it; `
 | `SESSION_IDLE_MINUTES` | API | `480` | A session ends after this long without a request |
 | `SESSION_ABSOLUTE_HOURS` | API | `168` | A session ends this long after sign-in, however active |
 | `COOKIE_SECURE` | API | `false` | `Secure` flag on the session cookie; defaults to `true` when `NODE_ENV=production` |
+| `INBOUND_WEBHOOK_SECRET` | API | empty | HMAC secret of the simulated mail provider, at least 32 characters; empty disables the inbound webhook (503). See `docs/tickets-and-inbound.md` |
+| `INBOUND_EMAIL_DOMAIN` | API | `inbound.helpharbor.example` | Workspace inbound addresses are `<slug>@<domain>`; ticket replies use `<slug>+<reply token>@<domain>` |
+| `INBOUND_SIGNATURE_TOLERANCE_SECONDS` | API | `300` | Signed webhook requests further than this from the server clock are refused |
 | `SEED_DEMO_PASSWORD` | `pnpm seed` | empty | Password for every demo account, at least 12 characters; the seed refuses to run without one |
 | `API_BASE_URL` | web (server side and build) | `http://localhost:4000` | Where the Next.js server reaches the API, and where `/api/*` is proxied. Rewrites are fixed at build time, so set it before `pnpm build` |
 | `APP_VERSION` | API | not set (`0.0.0`) | Reported by the health endpoint |

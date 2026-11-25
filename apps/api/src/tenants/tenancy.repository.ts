@@ -48,6 +48,10 @@ export class TenancyRepository {
     return this.tenants.findOne({ _id: id });
   }
 
+  findTenantBySlug(slug: string): Promise<TenantDoc | null> {
+    return this.tenants.findOne({ slug });
+  }
+
   /** The user's role in one tenant, or null when they are not a member. */
   async findRole(tenantId: ObjectId, userId: ObjectId): Promise<Role | null> {
     const membership = await this.memberships.findOne({ tenantId, userId }, { projection: { role: 1 } });

@@ -39,6 +39,15 @@ Status: `todo` · `doing` · `done`. Updated at the end of each week together wi
 - [x] Identity threat model and demo-account notes; masked emails in logs
 - [x] Playwright login and forbidden-access E2E in CI
 
+## Week 03 checklist
+
+- [x] Customers, tickets, messages, ticket events and outbox with validators; per-tenant ticket counter
+- [x] HMAC-signed inbound webhook; idempotent by `(tenantId, Message-ID)`; threading by reply token and headers in one transaction
+- [x] Queue and detail endpoints with keyset cursor pagination and `ETag`
+- [ ] Agent queue and conversation view with public/internal separation
+- [ ] Duplicate, bad-signature, out-of-order and HTML-sanitization tests through the UI; threading rules and sample payloads
+- [ ] 400 deterministic synthetic tickets across three tenants; identical reseed
+
 ## Risks
 
 - The toolchain (Node, pnpm, Docker) must be available to verify the workspace end to end.

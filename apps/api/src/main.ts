@@ -18,7 +18,8 @@ function loadLocalEnvFile(): void {
 
 async function bootstrap(): Promise<void> {
   loadLocalEnvFile();
-  const app = await NestFactory.create(AppModule);
+  // rawBody: the inbound webhook verifies its HMAC over the exact bytes received.
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get<AppConfig>(APP_CONFIG);
   configureApp(app, config);
   // Idempotent: creates collections, validators and indexes before serving traffic.
